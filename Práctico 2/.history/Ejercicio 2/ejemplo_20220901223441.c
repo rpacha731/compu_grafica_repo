@@ -1,0 +1,196 @@
+
+#include <GL/glu.h>
+#include <GL/glut.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+
+GLfloat puntos[2][2];
+GLfloat colorcito[3]; // RGB
+int cont = 0;
+
+void iniciar(void)
+{
+    glClearColor(1.0, 1.0, 1.0, 0.0);   // Pinta el fondo de blanco
+    glMatrixMode(GL_PROJECTION);        // Selecciona el modo de proyección
+    glLoadIdentity();                   // Inicializa la matriz de proyección en la matriz identidad
+    gluOrtho2D(0.0, 640.0, 0.0, 480.0); // Establece el viewport (ventana de dibujo)
+}
+
+void dibujar(void)
+{
+    glClear(GL_COLOR_BUFFER_BIT);
+    glColor3f(0.0f, 0.0f, 0.0f); // Pinta el punto de color rojo
+    glPointSize(3.0);            // Tamaño del punto
+
+    glBegin(GL_POINTS); // Inicia el dibujo de puntos
+    for (int i = 0; i < cont; i++)
+        glVertex2f(puntos[i][0], puntos[i][1]);
+    
+
+    glEnd(); // Finaliza el dibujo de puntos
+
+    // array de coordenadas de los puntos
+    if (cont == 2)
+    {
+        cont = 0;
+        glFlush();
+
+        glPointSize(1.0);
+        glColor3f(colorcito[0], colorcito[1], colorcito[2]);
+
+        // algoritmo de Bresenham para rectas con cualquier pendiente y signo
+
+        int x1 = puntos[0][0];
+        int y1 = puntos[0][1];
+        int x2 = puntos[1][0];
+        int y2 = puntos[1][1];
+
+        int dx = abs(x2 - x1);
+        int dy = abs(y2 - y1);
+        int p = 2 * dy - dx;
+        int twoDy = 2 * dy;
+        int twoDyMinusDx = 2 * (dy - dx);
+        int x, y;
+
+        if (x1 > x2)
+        {
+            x = x2;
+            y = y2;
+            x2 = x1;
+        }
+        else
+        {
+            x = x1;
+            y = y1;
+        }
+
+        glBegin(GL_POINTS);
+        glVertex2i(x, y);
+
+        while (x < x2)
+        {
+            x++;
+            if (p < 0)
+                p += twoDy;
+            else
+            {
+                y++;
+                p += twoDyMinusDx;
+            }
+            glVertex2i(x, y);
+        }
+        glEnd();
+
+        
+
+        // int x, y, dx, dy, d, incrE, incrNE;
+
+        // // invierte los puntos si el punto inicial es mayor que el final
+
+        // dx = puntos[1][0] - puntos[0][0];
+        // dy = puntos[1][1] - puntos[0][1];
+
+        // if (dx < 0)
+        // {
+        //     dx = -dx;
+        //     dy = -dy;
+        // }
+       
+        // incrE = 2 * dy;
+        // incrNE = 2 * (dy - dx);
+
+        // d = (2 * dy) - dx;
+
+        // x = puntos[0][0];
+        // y = puntos[0][1];
+
+        // glBegin(GL_POINTS);
+
+        
+        // while (x < puntos[1][0])
+        // {
+        //     glVertex2i(x, y);
+        //     if (d <= 0)
+        //     {
+        //         d += incrE;
+        //         x++;
+        //     }
+        //     else
+        //     {
+        //         d += incrNE;
+        //         x++;
+        //         y++;
+        //     }
+        // }
+
+        // while (x < puntos[1][0])
+        // {
+        //     if (d <= 0)
+        //     {
+        //         d += incrE;
+        //         x++;
+        //     }
+        //     else
+        //     {
+        //         d += incrNE;
+        //         x++;
+        //         y += 1;
+        //     }
+        //     glVertex2f(x, y);
+            
+        // }
+        // glEnd();
+        
+    }
+
+    glFlush();
+}
+
+void mouse(int button, int state, int x, int y)
+{
+    if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
+    {
+        puntos[cont][0] = x;
+        puntos[cont][1] = abs(480 - y);
+        cont++;
+        dibujar();
+    }
+}
+
+void keyboard(unsigned char key, int x, int y)
+{
+    printf("%c\n", key);
+    switch (key)
+    {
+    case 'a':
+        colorcito[0] = 0;
+        colorcito[1] = 0;
+        colorcito[2] = 255;
+        break;
+    case 'v':
+        colorcito[0] = 0;
+        colorcito[1] = 255;
+        colorcito[2] = 0;
+        break;
+    case 'r':
+        colorcito[0] = 255;
+        colorcito[1] = 0;
+        colorcito[2] = 0;
+        break;
+    }
+}
+
+void main(int argc, char **argv)
+{
+    glutInit(&argc, argv);                       // Inicializa la librería GLUT
+    glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB); // Inicializa el modo de visualización (un solo buffer, con color)
+    glutInitWindowSize(640, 480);                // Inicializa el tamaño de la ventana de dibujo
+    glutInitWindowPosition(100, 150);            // Inicializa la posición de la ventana de dibujo
+    glutCreateWindow("CG Ejemplo");              // Crea la ventana de dibujo
+    glutDisplayFunc(dibujar);                    // Establece la función de dibujo
+    glutMouseFunc(mouse);
+    glutKeyboardFunc(keyboard);
+    iniciar();      // Inicializa el contenido de la ventana de dibujo
+    glutMainLoop(); // Inicia el bucle de eventos
+}
